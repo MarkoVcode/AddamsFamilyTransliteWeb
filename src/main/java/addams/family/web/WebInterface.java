@@ -2,8 +2,6 @@ package addams.family.web;
 
 import static spark.Spark.get;
 import static spark.Spark.post;
-//import org.sqlite.JDBC;
-import spark.servlet.SparkApplication;
 
 import java.io.File;
 import java.sql.Connection;
@@ -12,14 +10,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
+
+import addams.family.web.config.AudioProperty;
+import addams.family.web.config.Properties;
+//import org.sqlite.JDBC;
+import spark.servlet.SparkApplication;
 
 public class WebInterface  implements SparkApplication {
 
-	//private static String TMP_PATH = "tmp"; 
-	
-	private static String DB_PATH = "db"; 
-	private static String DB_NAME = "settings.db";
-	private static String DB = DB_PATH + "/" + DB_NAME;
+	private static String DB;
 	
 	private static String VAL_TEMP_PWS = "tempPWS";
 	private static String VAL_TEMP_EXT = "tempEXT";
@@ -36,6 +36,15 @@ public class WebInterface  implements SparkApplication {
 	private static int BACKLIGHT_OTT = 255;
 	
 	private static Connection con;
+	private Properties prop;
+	
+	public WebInterface() {
+		prop = new Properties();
+		DB = prop.getDBPath() + "/" + prop.getDBName();
+		System.out.println(prop.getTOCKey());
+		List<AudioProperty> ap = prop.getAudioProperties();
+		System.out.println(prop.getTOCKey());
+	}
 	
 	@Override
 	public void init() {
@@ -61,6 +70,8 @@ public class WebInterface  implements SparkApplication {
 		});
 		
 		get("/lightCurrent", (request, response) -> {
+			List<AudioProperty> ap = prop.getAudioProperties();
+			System.out.println(((AudioProperty) ap.get(0)).getVolume());
 			return "Light is: " + getBrithtness();
 		});
 		
@@ -76,6 +87,7 @@ public class WebInterface  implements SparkApplication {
 	public static void main(String[] args) {
 	//System.setProperty("java.io.tmpdir", "/home/pi/display/controll/tmp");
 		WebInterface wa = new WebInterface();
+		
 		try {
 			if(!wa.dbExists()) {
 				System.out.println("Creating DB.");
@@ -112,16 +124,15 @@ public class WebInterface  implements SparkApplication {
 		return value;
 	}
 
-	
 	private boolean dbExists() {
-		File fdir = new File(DB_PATH);
+		File fdir = new File(prop.getDBPath());
 		if(fdir.exists() && fdir.isDirectory()) { 
 			File fdb = new File(DB);
 			if(fdb.exists() && !fdb.isDirectory()) { 
 			    return true;
 			}
 		} else {
-			new File(DB_PATH).mkdir();
+			new File(prop.getDBPath()).mkdir();
 			return false;
 		}
 		return false;
