@@ -71,6 +71,7 @@ public class Properties {
 				int stop = config.getInt("af.soundplay.stop." + configCounter);
 				String knocks = config.getString("af.soundplay.knock." + configCounter);
 				String cron = config.getString("af.soundplay.cron." + configCounter);
+				String light = config.getString("af.soundplay.light." + configCounter);
 				if(null != track) {
 					AudioProperty ap = new AudioProperty();
 					ap.setVolume(volume);
@@ -78,7 +79,8 @@ public class Properties {
 					ap.setStart(start);
 					ap.setStop(stop);
 					ap.setTrack(track);
-					ap.setKnocks(parseKnocks(knocks));
+					ap.setKnocks(knocks);
+					ap.setLight(light);
 					properties.add(ap);
 				}
 				configCounter++;
@@ -86,12 +88,7 @@ public class Properties {
 		}
 		return properties;
 	}
-	
-	private String[] parseKnocks(String knocks) {
-		String[] knocksArray = knocks.split("\\|");
-		return knocksArray;
-	}
-	
+
 	public Map<String,String> get1WSensors()
 	{
 		Map<String,String> map = new HashMap<String,String>();

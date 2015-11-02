@@ -14,6 +14,7 @@ import java.util.List;
 
 import addams.family.web.config.AudioProperty;
 import addams.family.web.config.Properties;
+import addams.family.web.scheduler.SchedulerThread;
 //import org.sqlite.JDBC;
 import spark.servlet.SparkApplication;
 
@@ -37,6 +38,7 @@ public class WebInterface  implements SparkApplication {
 	
 	private static Connection con;
 	private Properties prop;
+	private SchedulerThread st;
 	
 	public WebInterface() {
 		prop = new Properties();
@@ -44,6 +46,8 @@ public class WebInterface  implements SparkApplication {
 		System.out.println(prop.getTOCKey());
 		List<AudioProperty> ap = prop.getAudioProperties();
 		System.out.println(prop.getTOCKey());
+		st = new SchedulerThread(ap);
+		st.start();
 	}
 	
 	@Override
@@ -69,9 +73,12 @@ public class WebInterface  implements SparkApplication {
 			return "Light is Off: " + getBrithtness();
 		});
 		
+		post("/cronReload", (request, response) -> {
+			reloadScheduler();
+			return "Reloaded";
+		});
+		
 		get("/lightCurrent", (request, response) -> {
-			List<AudioProperty> ap = prop.getAudioProperties();
-			System.out.println(((AudioProperty) ap.get(0)).getVolume());
 			return "Light is: " + getBrithtness();
 		});
 		
@@ -82,6 +89,10 @@ public class WebInterface  implements SparkApplication {
 		get("/", (request, response) -> {
             return "Addams Family Translite Project";
         });
+	}
+	
+	private void reloadScheduler() {
+		st.reload(prop.getAudioProperties());
 	}
 	
 	public static void main(String[] args) {

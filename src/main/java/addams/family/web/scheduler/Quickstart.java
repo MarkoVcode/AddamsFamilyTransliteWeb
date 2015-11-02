@@ -3,7 +3,8 @@ package addams.family.web.scheduler;
 import it.sauronsoftware.cron4j.Scheduler;
 
 public class Quickstart {
-
+//http://www.sauronsoftware.it/projects/cron4j/manual.php
+	//http://alvinalexander.com/java/edu/pj/pj010016
 	public static void main(String[] args) {
 		// Creates a Scheduler instance.
 		Scheduler s = new Scheduler();
@@ -11,6 +12,11 @@ public class Quickstart {
 		s.schedule("* * * * *", new Runnable() {
 			public void run() {
 				System.out.println("Another minute ticked away...");
+			}
+		});
+		s.schedule("* * * * *", new Runnable() {
+			public void run() {
+				System.out.println("Another minute ticked away bla...");
 			}
 		});
 		// Starts the scheduler.

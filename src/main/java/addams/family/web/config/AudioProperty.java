@@ -5,8 +5,9 @@ public class AudioProperty {
 	private String track;
 	private int start;
 	private int stop;
-	private String[] knocks;
+	private String knocks;
 	private String cron;
+	private String light;
 	
 	public int getVolume() {
 		return volume;
@@ -32,16 +33,22 @@ public class AudioProperty {
 	public void setStop(int stop) {
 		this.stop = stop;
 	}
-	public String[] getKnocks() {
-		return knocks;
-	}
-	public void setKnocks(String[] knocks) {
-		this.knocks = knocks;
-	}
 	public String getCron() {
 		return cron;
 	}
 	public void setCron(String cron) {
 		this.cron = cron;
+	}
+	public String getLight() {
+		return light;
+	}
+	public void setLight(String light) {
+		this.light = light;
+	}
+	public String getKnocks() {
+		return knocks;
+	}
+	public void setKnocks(String knocks) {
+		this.knocks = knocks;
 	}
 }
