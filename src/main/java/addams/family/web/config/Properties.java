@@ -85,6 +85,11 @@ public class Properties {
 		return config.getString("af.db.name");
 	}
 	
+	public String getDB() {
+		return getDBPath() + "/" + getDBName();
+	}
+	
+	
 	public List<AudioProperty> getAudioProperties() {
 		reload();
 		List<AudioProperty> properties = new ArrayList<AudioProperty>();

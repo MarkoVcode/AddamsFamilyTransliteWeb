@@ -3,6 +3,7 @@ package addams.family.web.scheduler;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,17 +11,20 @@ import org.slf4j.LoggerFactory;
 
 import addams.family.web.config.Properties;
 import addams.family.web.config.SensorsProperty;
+import addams.family.web.db.DB;
 
 public class SensorsRunnable implements Runnable {
 	
 	private static org.slf4j.Logger LOG;
 	private Map<String, String> sensorsPaths;
 	private Properties prop;
+	private DB db;
 	
 	public SensorsRunnable(SensorsProperty sp) {
 		LOG = LoggerFactory.getLogger(SensorsRunnable.class);
-		sensorsPaths = formSensorPaths(sp);
+		db = DB.getInstance();
 		prop = Properties.getInstance();
+		sensorsPaths = formSensorPaths(sp);
 	}
 	
 	private Map<String, String> formSensorPaths(SensorsProperty sp) {
@@ -54,7 +58,8 @@ public class SensorsRunnable implements Runnable {
 				LOG.error(filePath + ": " +e.getMessage());
 			} finally {
 		        try {
-					reader.close();
+		        	if(null != reader)
+		        		reader.close();
 				} catch (IOException e) {
 					LOG.error(filePath + ": " +e.getMessage());
 				}
@@ -63,9 +68,14 @@ public class SensorsRunnable implements Runnable {
     }
 	
 	private String readValue(String sensor) {
-		LOG.info("SensorText: " + sensor);
-		String[] parts = sensor.split("\\t=");
-		String value = parts[1].trim();
+		String value = null;
+		if(null != sensor) {
+			//TODO use regex here
+			LOG.error("SensorText: " + sensor);
+			String[] parts = sensor.split("\\t=");
+			if(parts.length > 1)
+			value = parts[1].trim();
+		}
 		return value;
 	}
 	
@@ -74,8 +84,12 @@ public class SensorsRunnable implements Runnable {
 		for (Map.Entry<String, String> entry : sensorsPaths.entrySet()) {
 			String value = readValue(readFileAsString(entry.getKey()));
 			String name = entry.getValue();
-			LOG.error(name + ": " + value);
-			//TODO save to db
+			LOG.info(name + ": " + value);
+			try {
+				db.saveSensorValue(name, value);
+			} catch (SQLException e) {
+				LOG.error("Could not save: " + name + ": " + value + e.getMessage());
+			}
 		}
 	}
 }
