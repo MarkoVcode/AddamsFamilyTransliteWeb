@@ -6,12 +6,12 @@ import java.util.List;
 import addams.family.web.config.AudioProperty;
 import it.sauronsoftware.cron4j.Scheduler;
 
-public class SchedulerThread extends Thread {
+public class SoundSchedulerThread extends Thread {
 	
 	private Scheduler s; 
 	private List<String> ids;
 	
-	public SchedulerThread(List<AudioProperty> aps) {
+	public SoundSchedulerThread(List<AudioProperty> aps) {
 		s = new Scheduler();
 		schedule(aps);
 	}

@@ -1,6 +1,7 @@
 .gradle
 build/
 bin/
+log/
 db/
 .classpath
 .project

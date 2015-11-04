@@ -35,6 +35,11 @@ public class Properties {
 		return config.getString("integration.toc.access.secret");
 	}
 
+	public String getLogConfig()
+	{
+		return config.getString("af.log.config");
+	}
+	
 	public String get1WSensorPath()
 	{
 		return config.getString("af.sensor.1w.path");
@@ -45,6 +50,21 @@ public class Properties {
 		return config.getString("af.sensor.1w.value.file");
 	}
 
+	public int getMAXBrightness()
+	{
+		return config.getInt("af.backlight.max.value", 200);
+	}
+
+	public int getMINBrightness()
+	{
+		return config.getInt("af.backlight.min.value", 10);
+	}
+	
+	public int getOTTBrightness()
+	{
+		return config.getInt("af.backlight.ott.value", 255);
+	}
+	
 	public String getDBPath() {
 		return config.getString("af.db.path");
 	}
@@ -54,12 +74,7 @@ public class Properties {
 	}
 	
 	public List<AudioProperty> getAudioProperties() {
-		try {
-			factory.refresh();
-			config = factory.getConfiguration();
-		} catch (ConfigurationException e) {
-			e.printStackTrace();
-		}
+		reload();
 		List<AudioProperty> properties = new ArrayList<AudioProperty>();
 		String track = ""; 
 		int configCounter = 1;
@@ -89,8 +104,9 @@ public class Properties {
 		return properties;
 	}
 
-	public Map<String,String> get1WSensors()
+	public SensorsProperty get1WSensorsProperty()
 	{
+		reload();
 		Map<String,String> map = new HashMap<String,String>();
 		String sensorId = "";
 		String sensorName = "";
@@ -103,6 +119,21 @@ public class Properties {
 			}
 			configCounter++;
 		}
-		return map;
+		SensorsProperty sp = null;
+		if(!map.isEmpty()) {
+			sp = new SensorsProperty();
+			sp.setSensors(map);
+			sp.setCron(config.getString("af.sensor.cron"));
+		}
+		return sp;
+	}
+	
+	public void reload() {
+		try {
+			factory.refresh();
+			config = factory.getConfiguration();
+		} catch (ConfigurationException e) {
+			e.printStackTrace();
+		}
 	}
 }

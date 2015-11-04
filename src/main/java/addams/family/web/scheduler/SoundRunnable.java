@@ -4,21 +4,21 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import org.slf4j.LoggerFactory;
+
 import addams.family.web.config.AudioProperty;
 
 public class SoundRunnable implements Runnable {
 
 	private String command;
-	private String cron;
-	
+	private static org.slf4j.Logger LOG;
+
 	public SoundRunnable(AudioProperty ap) {
+		LOG = LoggerFactory.getLogger(SoundRunnable.class);	
 		command = buildCommand(ap);
-		cron = ap.getCron();
-		System.out.println("CONSTRUCTED");
 	}
 	
 	private String buildCommand(AudioProperty ap){
-		System.out.println("BUILD");
 		return "python SoundPlay.py -v "
 				+ ap.getVolume()
 				+ " -i "
@@ -31,14 +31,9 @@ public class SoundRunnable implements Runnable {
 				+ " -k "
 				+ ap.getKnocks();
 	}
-	
-	public String getCron() {
-		return cron;
-	}
-	
+
 	@Override
 	public void run() {
-		System.out.println("STARTED");
 		String s = null;
         try {
             Process p = Runtime.getRuntime().exec(command);
@@ -48,21 +43,15 @@ public class SoundRunnable implements Runnable {
  
             BufferedReader stdError = new BufferedReader(new
                  InputStreamReader(p.getErrorStream()));
-
-            System.out.println("Here is the standard output of the command:\n");
             while ((s = stdInput.readLine()) != null) {
-                System.out.println(s);
+            	LOG.info(command + ": " +s);
             }
-
-            System.out.println("Here is the standard error of the command (if any):\n");
             while ((s = stdError.readLine()) != null) {
-                System.out.println(s);
+            	LOG.error(command + ": " +s);
             }
         }
         catch (IOException e) {
-            System.out.println("exception happened - here's what I know: ");
-            e.printStackTrace();
+        	LOG.error("Problem: " + e.getMessage());
         }
 	}
-
 }

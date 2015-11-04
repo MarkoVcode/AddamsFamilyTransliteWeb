@@ -10,16 +10,18 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.List;
 
-import addams.family.web.config.AudioProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import addams.family.web.config.Properties;
-import addams.family.web.scheduler.SchedulerThread;
-//import org.sqlite.JDBC;
+import addams.family.web.scheduler.SensorsSchedulerThread;
+import addams.family.web.scheduler.SoundSchedulerThread;
 import spark.servlet.SparkApplication;
 
 public class WebInterface  implements SparkApplication {
-
+//TODO 1w sensors values
+//TODO reload on properties change
 	private static String DB;
 	
 	private static String VAL_TEMP_PWS = "tempPWS";
@@ -31,40 +33,41 @@ public class WebInterface  implements SparkApplication {
 	
 	private static String TABLE_OVERRIDES = "af_overrides";
 	private static String TABLE_VALUES = "af_values";
-	
-	private static int BACKLIGHT_MIN = 10;
-	private static int BACKLIGHT_MAX = 200;
-	private static int BACKLIGHT_OTT = 255;
-	
+
 	private static Connection con;
 	private Properties prop;
-	private SchedulerThread st;
+	private SoundSchedulerThread soundt;
+	private SensorsSchedulerThread senst;
+	
+	private static Logger LOG;
 	
 	public WebInterface() {
 		prop = new Properties();
+		System.setProperty("logback.configurationFile", prop.getLogConfig());
+		LOG = LoggerFactory.getLogger(WebInterface.class);
+		LOG.info("Starting Addams Family Screen");
 		DB = prop.getDBPath() + "/" + prop.getDBName();
-		System.out.println(prop.getTOCKey());
-		List<AudioProperty> ap = prop.getAudioProperties();
-		System.out.println(prop.getTOCKey());
-		st = new SchedulerThread(ap);
-		st.start();
+		soundt = new SoundSchedulerThread(prop.getAudioProperties());
+		soundt.start();
+		senst = new SensorsSchedulerThread(prop.get1WSensorsProperty());
+		senst.start();
 	}
 	
 	@Override
 	public void init() {
 		
 		post("/lightMax", (request, response) -> {
-			setBrightness(BACKLIGHT_MAX);
+			setBrightness(prop.getMAXBrightness());
 			return "Light is MAX: " + getBrithtness();
 		});
 		
 		post("/lightMin", (request, response) -> {
-			setBrightness(BACKLIGHT_MIN);
+			setBrightness(prop.getMINBrightness());
 			return "Light is MIN: " + getBrithtness();
 		});
 
 		post("/lightOTT", (request, response) -> {
-			setBrightness(BACKLIGHT_OTT);
+			setBrightness(prop.getOTTBrightness());
 			return "Light is OTT: " + getBrithtness();
 		});
 		
@@ -92,13 +95,11 @@ public class WebInterface  implements SparkApplication {
 	}
 	
 	private void reloadScheduler() {
-		st.reload(prop.getAudioProperties());
+		soundt.reload(prop.getAudioProperties());
 	}
 	
 	public static void main(String[] args) {
-	//System.setProperty("java.io.tmpdir", "/home/pi/display/controll/tmp");
-		WebInterface wa = new WebInterface();
-		
+		WebInterface wa = new WebInterface();		
 		try {
 			if(!wa.dbExists()) {
 				System.out.println("Creating DB.");
@@ -170,7 +171,7 @@ public class WebInterface  implements SparkApplication {
 		  // inserting data
 		  PreparedStatement prepOverrides = con.prepareStatement("insert into " + TABLE_OVERRIDES + " values(?,?,?);");
 		  prepOverrides.setString(2, OVRR_BACKLIGHT);
-		  prepOverrides.setString(3, ""+BACKLIGHT_MIN);
+		  prepOverrides.setString(3, "" + prop.getMINBrightness());
 		  prepOverrides.execute();
 		  
 		  PreparedStatement prep = con.prepareStatement("insert into " + TABLE_VALUES + " values(?,?,?);");
