@@ -42,7 +42,7 @@ public class WebInterface  implements SparkApplication {
 	private static Logger LOG;
 	
 	public WebInterface() {
-		prop = new Properties();
+		prop = Properties.getInstance();
 		System.setProperty("logback.configurationFile", prop.getLogConfig());
 		LOG = LoggerFactory.getLogger(WebInterface.class);
 		LOG.info("Starting Addams Family Screen");

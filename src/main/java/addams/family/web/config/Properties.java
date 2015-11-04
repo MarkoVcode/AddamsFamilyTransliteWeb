@@ -12,10 +12,11 @@ import org.apache.commons.configuration.DefaultConfigurationBuilder;
 public class Properties {
 	
 	private Configuration config;
-	
+	private static volatile Properties INSTANCE;
 	private static final String CONFIG_FILE = "config/config.xml";
 	private DefaultConfigurationBuilder factory;
-	public Properties() {
+	
+	private Properties() {
 		try {
 			factory = new DefaultConfigurationBuilder(CONFIG_FILE);
 			config = factory.getConfiguration();
@@ -23,6 +24,17 @@ public class Properties {
 			e.printStackTrace();
 			System.exit(1);
 		}	
+	}
+
+	public static Properties getInstance() {
+		if(null == INSTANCE) {
+			synchronized (Properties.class) {
+				if(null == INSTANCE) {
+					INSTANCE = new Properties();
+				}
+			}
+		}
+		return INSTANCE;
 	}
 	
 	public String getTOCKey()
