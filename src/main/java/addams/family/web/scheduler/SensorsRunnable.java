@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.LoggerFactory;
 
@@ -19,12 +21,14 @@ public class SensorsRunnable implements Runnable {
 	private Map<String, String> sensorsPaths;
 	private Properties prop;
 	private DB db;
+	private Pattern p;
 	
 	public SensorsRunnable(SensorsProperty sp) {
 		LOG = LoggerFactory.getLogger(SensorsRunnable.class);
 		db = DB.getInstance();
 		prop = Properties.getInstance();
 		sensorsPaths = formSensorPaths(sp);
+		p = Pattern.compile("([0-9-]{4,6})");
 	}
 	
 	private Map<String, String> formSensorPaths(SensorsProperty sp) {
@@ -70,11 +74,10 @@ public class SensorsRunnable implements Runnable {
 	private String readValue(String sensor) {
 		String value = null;
 		if(null != sensor) {
-			//TODO use regex here
-			LOG.error("SensorText: " + sensor);
-			String[] parts = sensor.split("\\t=");
-			if(parts.length > 1)
-			value = parts[1].trim();
+			Matcher m = p.matcher(sensor);
+			if (m.find()) {
+			    value = m.group(1);
+			}
 		}
 		return value;
 	}
@@ -84,7 +87,7 @@ public class SensorsRunnable implements Runnable {
 		for (Map.Entry<String, String> entry : sensorsPaths.entrySet()) {
 			String value = readValue(readFileAsString(entry.getKey()));
 			String name = entry.getValue();
-			LOG.info(name + ": " + value);
+			LOG.info("Temperature: " + name + ": " + value);
 			try {
 				db.saveSensorValue(name, value);
 			} catch (SQLException e) {

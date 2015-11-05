@@ -13,9 +13,7 @@ import addams.family.web.scheduler.SoundSchedulerThread;
 import spark.servlet.SparkApplication;
 
 public class WebInterface  implements SparkApplication {
-//TODO 1w sensors values
 //TODO reload on properties change
-//	private static String DB;
 	private Properties prop;
 	private DB db;
 	private SoundSchedulerThread soundt;
@@ -25,10 +23,10 @@ public class WebInterface  implements SparkApplication {
 	
 	public WebInterface() {
 		prop = Properties.getInstance();
-		db = DB.getInstance();
 		System.setProperty("logback.configurationFile", prop.getLogConfig());
 		LOG = LoggerFactory.getLogger(WebInterface.class);
 		LOG.info("Starting Addams Family Screen");
+		db = DB.getInstance();
 		soundt = new SoundSchedulerThread(prop.getAudioProperties());
 		soundt.start();
 		senst = new SensorsSchedulerThread(prop.get1WSensorsProperty());
