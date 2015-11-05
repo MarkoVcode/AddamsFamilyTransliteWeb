@@ -89,7 +89,7 @@ public class SensorsRunnable implements Runnable {
 			String name = entry.getValue();
 			LOG.info("Temperature: " + name + ": " + value);
 			try {
-				db.saveSensorValue(name, value);
+				db.saveValue(DB.TABLE_1WVALUES, name, value);
 			} catch (SQLException e) {
 				LOG.error("Could not save: " + name + ": " + value + e.getMessage());
 			}
