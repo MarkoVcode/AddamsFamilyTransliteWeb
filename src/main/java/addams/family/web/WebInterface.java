@@ -51,9 +51,14 @@ public class WebInterface  implements SparkApplication {
 			return "Light is OTT: " + db.getBrithtness();
 		});
 		
-		post("/lightOff", (request, response) -> {
+		post("/lightAuto", (request, response) -> {
 			db.setBrightness(0);
 			return "Light is Off: " + db.getBrithtness();
+		});
+		
+		post("/suspend", (request, response) -> {
+			db.setBrightness(-1);
+			return "Behaviour suspended: " + db.getBrithtness();
 		});
 		
 		post("/cronReload", (request, response) -> {

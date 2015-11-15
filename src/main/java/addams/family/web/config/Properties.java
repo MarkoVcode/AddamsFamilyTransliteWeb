@@ -76,6 +76,11 @@ public class Properties {
 	{
 		return config.getInt("af.backlight.ott.value", 255);
 	}
+
+	public String getBehaviourSuspensionReset()
+	{
+		return config.getString("af.susp.reset.cron", "10 * * * *");
+	}
 	
 	public String getDBPath() {
 		return config.getString("af.db.path");
