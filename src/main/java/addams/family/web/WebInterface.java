@@ -3,6 +3,8 @@ package addams.family.web;
 import static spark.Spark.get;
 import static spark.Spark.post;
 
+import java.sql.SQLException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,6 +67,22 @@ public class WebInterface  implements SparkApplication {
 			reloadScheduler();
 			return "Reloaded";
 		});
+		
+		post("/eBrightness/:channel/:value", (request, response) -> {
+			Integer val = Integer.parseInt(request.params(":value"));
+			if(val >= 0 && val < 256) {
+				db.setExternalBrightness(request.params(":channel"), val);
+			}
+			return "eBrightness (" + request.params(":channel") + "): " + db.getExternalBrightness(request.params(":channel"));
+		});
+		
+		get("/eBrightness", "application/json", (request, response) -> {
+			return db.getExternalBrightnessJSON();
+		});
+		
+/*		get("/eBrightness", "application/json", (request, response) -> {
+		    return db.getExternalBrightnessBean();
+		}, new JsonTransformer());*/
 		
 		get("/lightCurrent", (request, response) -> {
 			return "Light is: " + db.getBrithtness();
