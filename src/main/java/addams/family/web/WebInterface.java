@@ -3,8 +3,6 @@ package addams.family.web;
 import static spark.Spark.get;
 import static spark.Spark.post;
 
-import java.sql.SQLException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +35,22 @@ public class WebInterface  implements SparkApplication {
 	
 	@Override
 	public void init() {
+		
+		post("/extLightMax", (request, response) -> {
+			db.setExternalBrightness("E1", 255);
+			db.setExternalBrightness("E2", 255);
+			db.setExternalBrightness("E3", 255);
+			db.setExternalBrightness("E4", 255);
+			return "Ext Light is MAX: " + 255;
+		});
+		
+		post("/extLightMin", (request, response) -> {
+			db.setExternalBrightness("E1", 0);
+			db.setExternalBrightness("E2", 0);
+			db.setExternalBrightness("E3", 0);
+			db.setExternalBrightness("E4", 0);
+			return "Ext Light is Min: " + 0;
+		});
 		
 		post("/lightMax", (request, response) -> {
 			db.setBrightness(prop.getMAXBrightness());
