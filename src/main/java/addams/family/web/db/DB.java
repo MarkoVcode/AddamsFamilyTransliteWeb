@@ -1,39 +1,33 @@
 package addams.family.web.db;
 
-import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Map;
-
+import addams.family.web.config.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import addams.family.web.config.Properties;
+import java.io.File;
+import java.sql.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DB {
 
 	private static String VAL_LIGHT_EXT = "lightEXT";
 	private static String VAL_LIGHT_INT = "lightINT";
-	
+
 	private static String OVRR_BACKLIGHT = "backlightBrightness";
-	
+
 	private static String TABLE_OVERRIDES = "af_overrides";
 	public static String TABLE_ADCVALUES = "af_adcvalues";
 	public static String TABLE_1WVALUES = "af_1wvalues";
 	public static String TABLE_I2CVALUES = "af_i2cvalues";
 	public static String TABLE_EBRIGHTVALUES = "af_ebrightvalues";
-	
+
 	private static Connection con;
 	private Properties prop;
 	private static volatile DB INSTANCE;
-	
+
 	private static Logger LOG;
-	
+
 	private DB() {
 		LOG = LoggerFactory.getLogger(DB.class);
 		prop = Properties.getInstance();
@@ -53,7 +47,7 @@ public class DB {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static DB getInstance() {
 		if(null == INSTANCE) {
 			synchronized (DB.class) {
@@ -67,9 +61,9 @@ public class DB {
 
 	private boolean dbExists() {
 		File fdir = new File(prop.getDBPath());
-		if(fdir.exists() && fdir.isDirectory()) { 
+		if(fdir.exists() && fdir.isDirectory()) {
 			File fdb = new File(prop.getDB());
-			if(fdb.exists() && !fdb.isDirectory()) { 
+			if(fdb.exists() && !fdb.isDirectory()) {
 			    return true;
 			}
 		} else {
@@ -78,15 +72,15 @@ public class DB {
 		}
 		return false;
 	}
-	
+
 	private void dbInit() throws ClassNotFoundException, SQLException {
 		  Class.forName("org.sqlite.JDBC");
-		  con = DriverManager.getConnection("jdbc:sqlite:" + prop.getDB());		  
+		  con = DriverManager.getConnection("jdbc:sqlite:" + prop.getDB());
 		  Statement stat = con.createStatement();
 		  stat.executeUpdate("drop table if exists " + TABLE_OVERRIDES);
 		  stat.executeUpdate("drop table if exists " + TABLE_ADCVALUES);
 		  stat.executeUpdate("drop table if exists " + TABLE_1WVALUES);
-		  stat.executeUpdate("drop table if exists " + TABLE_EBRIGHTVALUES);		  
+		  stat.executeUpdate("drop table if exists " + TABLE_EBRIGHTVALUES);
 		  //creating table
 		  stat.executeUpdate("create table " + TABLE_OVERRIDES + "(id integer, paramName varchar(30), value INT, primary key (id));");
 		  stat.executeUpdate("create table " + TABLE_ADCVALUES + "(id integer, paramName varchar(30), value varchar(30), eDate varchar(30), primary key (id));");
@@ -102,10 +96,10 @@ public class DB {
 		  for(Map.Entry<String, String> entry : prop.get1WSensorsProperty().getSensors().entrySet()) {
 			  prep1W.setString(2, entry.getValue());
 			  prep1W.setString(3, "-273");
-			  prep1W.setString(4, "today");		  
+			  prep1W.setString(4, "today");
 			  prep1W.execute();
 		  }
-		  
+
 		  PreparedStatement prep = con.prepareStatement("insert into " + TABLE_ADCVALUES + " values(?,?,?,?);");
 		  prep.setString(2, VAL_LIGHT_EXT);
 		  prep.setString(3, "n/a");
@@ -115,7 +109,7 @@ public class DB {
 		  prep.setString(3, "n/a");
 		  prep.setString(4, "now");
 		  prep.execute();
-		  
+
 		  PreparedStatement prepE = con.prepareStatement("insert into " + TABLE_EBRIGHTVALUES + " values(?,?,?);");
 		  prepE.setString(2, "E1");
 		  prepE.setInt(3, 0);
@@ -128,7 +122,7 @@ public class DB {
 		  prepE.execute();
 		  prepE.setString(2, "E4");
 		  prepE.setInt(3, 0);
-		  prepE.execute();		  
+		  prepE.execute();
 	}
 
 	public String getValues() throws SQLException {
@@ -145,6 +139,24 @@ public class DB {
 		return sp.toString();
 	}
 
+    public Map<String, String> getAllValuesMap() throws SQLException {
+        Map<String, String> out = new HashMap<>();
+        Statement stat = con.createStatement();
+        ResultSet res = stat.executeQuery("select * from " + TABLE_ADCVALUES);
+        while (res.next()) {
+            if(null != res.getString("value")) {
+                out.put(res.getString("paramName"), res.getString("value"));
+            }
+        }
+        ResultSet res1W = stat.executeQuery("select * from " + TABLE_1WVALUES);
+        while (res.next()) {
+            if(null != res1W.getString("value")) {
+                out.put(res1W.getString("paramName"), res1W.getString("value"));
+            }
+        }
+        return out;
+    }
+
 	public void setBrightness(int brightness) throws SQLException {
 		  PreparedStatement prep = con
 				    .prepareStatement("update " + TABLE_OVERRIDES + " set value=? where paramName=?;");
@@ -152,7 +164,7 @@ public class DB {
 				  prep.setString(2, OVRR_BACKLIGHT);
 				  prep.execute();
 	}
-	
+
 	public void setExternalBrightness(String channel, int value) throws SQLException {
 		  PreparedStatement prep = con
 				    .prepareStatement("update " + TABLE_EBRIGHTVALUES + " set value=? where paramName=?;");
@@ -160,7 +172,7 @@ public class DB {
 				  prep.setString(2, channel);
 				  prep.execute();
 	}
-	
+
 	public String getExternalBrightness(String channel) throws SQLException  {
 		Statement stat = con.createStatement();
 		String value = "";
@@ -170,7 +182,7 @@ public class DB {
 		}
 		return value;
 	}
-	
+
 	public String getExternalBrightnessJSON() throws SQLException {
 		Statement stat = con.createStatement();
 		StringBuilder value = new StringBuilder();
@@ -180,7 +192,7 @@ public class DB {
 		}
 		return "{" + value.substring(0, value.length()-1) + "}";
 	}
-	
+
 /*	public BrightnessBean getExternalBrightnessBean() throws SQLException {
 		BrightnessBean bb = new BrightnessBean();
 		Map<String, String> m = new HashMap<String, String>();
@@ -192,7 +204,7 @@ public class DB {
 		bb.values = m;
 		return bb;
 	}*/
-	
+
 	public String getBrithtness() throws SQLException {
 		Statement stat = con.createStatement();
 		String value = null;
@@ -201,9 +213,9 @@ public class DB {
 			value = res.getString("value");
 		}
 		return value;
-		
+
 	}
-	
+
 	public void saveValue(String table, String name, String value) throws SQLException {
 		  PreparedStatement prep = con
 				    .prepareStatement("update " + table + " set value=?, eDate=? where paramName=?;");

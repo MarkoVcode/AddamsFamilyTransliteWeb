@@ -1,21 +1,21 @@
 package addams.family.web.config;
 
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.DefaultConfigurationBuilder;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.DefaultConfigurationBuilder;
-
 public class Properties {
-	
+
 	private Configuration config;
 	private static volatile Properties INSTANCE;
 	private static final String CONFIG_FILE = "config/config.xml";
 	private DefaultConfigurationBuilder factory;
-	
+
 	private Properties() {
 		try {
 			factory = new DefaultConfigurationBuilder(CONFIG_FILE);
@@ -23,7 +23,7 @@ public class Properties {
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
 			System.exit(1);
-		}	
+		}
 	}
 
 	public static Properties getInstance() {
@@ -36,12 +36,12 @@ public class Properties {
 		}
 		return INSTANCE;
 	}
-	
+
 	public String getTOCKey()
 	{
 		return config.getString("integration.toc.access.key");
 	}
-	
+
 	public String getTOCSecret()
 	{
 		return config.getString("integration.toc.access.secret");
@@ -51,12 +51,12 @@ public class Properties {
 	{
 		return config.getString("af.log.config");
 	}
-	
+
 	public String get1WSensorPath()
 	{
 		return config.getString("af.sensor.1w.path");
-	}	
-	
+	}
+
 	public String get1WSensorValueFile()
 	{
 		return config.getString("af.sensor.1w.value.file");
@@ -71,7 +71,7 @@ public class Properties {
 	{
 		return config.getInt("af.backlight.min.value", 10);
 	}
-	
+
 	public int getOTTBrightness()
 	{
 		return config.getInt("af.backlight.ott.value", 255);
@@ -81,7 +81,7 @@ public class Properties {
 	{
 		return config.getString("af.susp.reset.cron", "10 * * * *");
 	}
-	
+
 	public String getDBPath() {
 		return config.getString("af.db.path");
 	}
@@ -89,16 +89,16 @@ public class Properties {
 	public String getDBName() {
 		return config.getString("af.db.name");
 	}
-	
+
 	public String getDB() {
 		return getDBPath() + "/" + getDBName();
 	}
-	
-	
+
+
 	public List<AudioProperty> getAudioProperties() {
 		reload();
 		List<AudioProperty> properties = new ArrayList<AudioProperty>();
-		String track = ""; 
+		String track = "";
 		int configCounter = 1;
 		while(track != null) {
 			track = config.getString("af.soundplay.track." + configCounter);
@@ -149,7 +149,40 @@ public class Properties {
 		}
 		return sp;
 	}
-	
+
+//	curl --header 'Authorization: TOCen KuHATAIKhryGJZrT4yhHw0PjYiPVYLBJFKEWItu3' --header 'Content-Type: application/json' -d '{"values":[{"name":"windSpeed","value":"6.23"},{"name":"tempOut","value":"28.7"}]}' -X POST https://testprvapi.thingoncloud.com/v1/service/direct/D9xsCC7hGrQqlS4B5T
+    public List<ThingOnCloudProperty> getTOCProperty()
+	{
+        List<ThingOnCloudProperty> props = new ArrayList<>();
+        int index = 1;
+        while(null != getSingleTOCProperty(index)) {
+            props.add(getSingleTOCProperty(index));
+            index++;
+        }
+        return props;
+	}
+
+	private ThingOnCloudProperty getSingleTOCProperty(int index)
+    {
+        ThingOnCloudProperty prop = new ThingOnCloudProperty();
+        prop.log = config.getBoolean("toc.integration.direct.log", false);
+        String url = config.getString("toc.integration.direct."+index+".url");
+        String service = config.getString("toc.integration.direct."+index+".service");
+        String tocen = config.getString("toc.integration.direct."+index+".tocen");
+        if(null == url && index == 1) {
+            prop.url = "https://testprvapi.thingoncloud.com/v1/service/direct";
+            prop.service = "D9xsCC7hGrQqlS4B5T";
+            prop.tocen = "KuHATAIKhryGJZrT4yhHw0PjYiPVYLBJFKEWItu3";
+            return prop;
+        } else if (null != url) {
+            prop.url = url;
+            prop.service = service;
+            prop.tocen = tocen;
+            return prop;
+        }
+        return null;
+    }
+
 	public void reload() {
 		try {
 			factory.refresh();
