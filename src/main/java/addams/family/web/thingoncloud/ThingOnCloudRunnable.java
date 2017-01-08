@@ -80,15 +80,17 @@ public class ThingOnCloudRunnable implements Runnable {
     }
 
     private void pushDirectValues(ThingOnCloudProperty serv, Map<String, String> data) {
+        String url = serv.url + "/" + serv.service;
         if(!data.isEmpty()) {
             String body = convertToJson(data);
             if(logService) {
-                LOG.debug(body);
+                LOG.info("URL: " + url);
+                LOG.info("REQUEST: " + body);
             }
             try {
-                String output = HttpRequest.post(serv.url + "/" + serv.service, body, serv.tocen);
+                String output = HttpRequest.post(url, body, serv.tocen);
                 if(logService) {
-                    LOG.debug(output);
+                    LOG.info("RESPONSE: " + output);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
